@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Life Success Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { -webkit-tap-highlight-color: transparent; user-select: none; }
+    .custom-scroll::-webkit-scrollbar { display: none; }
+    .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen flex flex-col justify-between">
+
+  <!-- AUTH CONTAINER -->
+  <div id="authContainer" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
+    <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold text-slate-800">Life Success Planner</h1>
+        <p class="text-sm text-gray-500 mt-1">Track habits, tasks, water & mind maps</p>
+      </div>
+
+      <div class="flex border-b border-gray-200">
+        <button id="tabLogin" type="button" onclick="switchAuthTab('login')" class="w-1/2 py-2 font-semibold text-emerald-600 border-b-2 border-emerald-600">Login</button>
+        <button id="tabSignup" type="button" onclick="switchAuthTab('signup')" class="w-1/2 py-2 font-semibold text-gray-400">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginForm" class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600 uppercase">Username</label>
+          <input id="loginUsername" type="text" class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter username" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600 uppercase">Password</label>
+          <input id="loginPassword" type="password" class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter password" />
+        </div>
+        <button type="button" onclick="handleLogin()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition">Log In</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="signupForm" class="space-y-4 hidden">
+        <div>
+          <label class="text-xs font-semibold text-gray-600 uppercase">Name / Username</label>
+          <input id="signupUsername" type="text" class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter name" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600 uppercase">Password</label>
+          <input id="signupPassword" type="password" class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Create password" />
+        </div>
+        <button type="button" onclick="handleSignup()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition">Create Account / Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="appContainer" class="min-h-screen flex flex-col justify-between hidden bg-slate-50 max-w-md mx-auto shadow-2xl relative">
+    
+    <!-- HEADER -->
+    <header class="bg-white px-5 py-4 shadow-sm border-b sticky top-0 z-20">
+      <div class="flex items-center justify-between">
+        <div>
+          <div id="timeGreeting" class="text-xs text-gray-400 font-medium">Good day,</div>
+          <div id="displayUsername" class="text-xl font-bold text-slate-800">User</div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold">
+            <i class="fa-solid fa-trophy text-amber-500 mr-1.5"></i>
+            <span id="userPoints">0</span> <span class="text-xs ml-0.5">pts</span>
+          </div>
+          <button type="button" onclick="logout()" class="text-gray-400 hover:text-red-500 p-1">
+            <i class="fa-solid fa-right-from-bracket text-lg"></i>
+          </button>
+        </div>
+      </div>
+      <div class="mt-2 flex justify-between items-center text-xs text-gray-400">
+        <span id="liveClock" class="font-mono">00:00:00</span>
+        <button type="button" onclick="openBonusModal()" class="text-emerald-600 font-semibold hover:underline">+ Log Extra Achievement</button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD VIEW -->
+    <main id="viewDashboard" class="p-4 space-y-4 flex-1">
+      <div onclick="openView('Habits')" class="bg-emerald-800 text-white p-5 rounded-2xl flex items-center justify-between shadow-md cursor-pointer active:scale-98 transition">
+        <div class="flex items-center space-x-4">
+          <div class="bg-emerald-700/50 p-3 rounded-xl">
+            <i class="fa-solid fa-wand-magic-sparkles text-2xl text-emerald-300"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-lg">Habit Tracker</h2>
+            <p class="text-xs text-emerald-200">Consistent Progress & Streaks</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-emerald-300"></i>
+      </div>
+
+      <div onclick="openView('Planner')" class="bg-white p-5 rounded-2xl flex items-center justify-between border shadow-sm cursor-pointer active:scale-98 transition">
+        <div class="flex items-center space-x-4">
+          <div class="bg-red-50 p-3 rounded-xl text-red-500">
+            <i class="fa-solid fa-calendar-check text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-lg text-slate-800">Daily Planner</h2>
+            <p class="text-xs text-gray-400">Tasks, To-Dos & Schedules</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+      </div>
+
+      <div onclick="openView('Water')" class="bg-white p-5 rounded-2xl flex items-center justify-between border shadow-sm cursor-pointer active:scale-98 transition">
+        <div class="flex items-center space-x-4">
+          <div class="bg-sky-50 p-3 rounded-xl text-sky-500">
+            <i class="fa-solid fa-glass-water text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-lg text-slate-800">Water Intake</h2>
+            <p class="text-xs text-gray-400">1 Glass = 1 Litre</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+      </div>
+
+      <div onclick="openView('MindMap')" class="bg-white p-5 rounded-2xl flex items-center justify-between border shadow-sm cursor-pointer active:scale-98 transition">
+        <div class="flex items-center space-x-4">
+          <div class="bg-pink-50 p-3 rounded-xl text-pink-500">
+            <i class="fa-solid fa-brain text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-lg text-slate-800">Mind Map</h2>
+            <p class="text-xs text-gray-400">Idea Tree Hierarchy</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-gray-400"></i>
+      </div>
+
+      <div class="bg-gray-200/60 p-4 rounded-xl text-center text-xs text-gray-600 font-medium">
+        ☀️ Small steps lead to big changes.
+      </div>
+    </main>
+
+    <!-- HABIT TRACKER VIEW -->
+    <main id="viewHabits" class="p-4 space-y-4 flex-1 hidden">
+      <div class="flex items-center space-x-3 mb-2">
+        <button type="button" onclick="openView('Dashboard')" class="p-2 text-gray-500"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+        <h2 class="text-xl font-bold">Habit Tracker</h2>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border space-y-3">
+        <input id="habitTitle" type="text" placeholder="Habit name..." class="w-full border px-3 py-2 rounded-lg text-sm" />
+        <div class="flex space-x-2">
+          <input id="habitDays" type="number" placeholder="Target Days" min="1" class="w-1/2 border px-3 py-2 rounded-lg text-sm" />
+          <input id="habitPoints" type="number" placeholder="Reward Points" min="1" class="w-1/2 border px-3 py-2 rounded-lg text-sm" />
+        </div>
+        <button type="button" onclick="addHabit()" class="w-full bg-emerald-700 text-white py-2 rounded-lg text-sm font-semibold">Add Habit</button>
+      </div>
+
+      <div id="habitsList" class="space-y-3"></div>
+    </main>
+
+    <!-- DAILY PLANNER VIEW -->
+    <main id="viewPlanner" class="p-4 space-y-4 flex-1 hidden">
+      <div class="flex items-center space-x-3 mb-2">
+        <button type="button" onclick="openView('Dashboard')" class="p-2 text-gray-500"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+        <h2 class="text-xl font-bold">Daily Planner</h2>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border space-y-3">
+        <input id="todoTitle" type="text" placeholder="Add task title..." class="w-full border px-3 py-2 rounded-lg text-sm" />
+        <div>
+          <label class="text-xs font-semibold text-gray-500">Points for this task</label>
+          <input id="todoPoints" type="number" placeholder="Points" min="1" value="10" class="w-full mt-1 border px-3 py-2 rounded-lg text-sm" />
+        </div>
+        <button type="button" onclick="addTodo()" class="w-full bg-slate-800 text-white py-2 rounded-lg text-sm font-semibold">Add Task</button>
+      </div>
+
+      <div id="todosList" class="space-y-2"></div>
+    </main>
+
+    <!-- WATER TRACKER VIEW -->
+    <main id="viewWater" class="p-4 space-y-4 flex-1 hidden">
+      <div class="flex items-center space-x-3 mb-2">
+        <button type="button" onclick="openView('Dashboard')" class="p-2 text-gray-500"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+        <h2 class="text-xl font-bold">Water Tracker</h2>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl border text-center space-y-4">
+        <i class="fa-solid fa-glass-water text-6xl text-sky-500"></i>
+        <div>
+          <div id="waterCount" class="text-4xl font-extrabold text-slate-800">0</div>
+          <div class="text-xs text-gray-400 uppercase tracking-wide">Litres Consumed Today</div>
+        </div>
+        <div class="flex justify-center space-x-3">
+          <button type="button" onclick="addWater(1)" class="bg-sky-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-95 transition">+ 1 Glass (1L)</button>
+          <button type="button" onclick="resetWater()" class="bg-gray-100 text-gray-500 px-3 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+      </div>
+    </main>
+
+    <!-- MIND MAP VIEW -->
+    <main id="viewMindMap" class="p-4 space-y-4 flex-1 hidden">
+      <div class="flex items-center space-x-3 mb-2">
+        <button type="button" onclick="openView('Dashboard')" class="p-2 text-gray-500"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+        <h2 class="text-xl font-bold">Mind Map Tree</h2>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border space-y-3">
+        <input id="nodeText" type="text" placeholder="Idea / Goal name..." class="w-full border px-3 py-2 rounded-lg text-sm" />
+        <select id="nodeParent" class="w-full border px-3 py-2 rounded-lg text-sm bg-white">
+          <option value="">Main Root Node</option>
+        </select>
+        <button type="button" onclick="addMindMapNode()" class="w-full bg-pink-600 text-white py-2 rounded-lg text-sm font-semibold">Add Node</button>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border custom-scroll overflow-x-auto">
+        <div id="mindMapTree" class="space-y-2"></div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- BONUS POINTS MODAL -->
+  <div id="bonusModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl w-full max-w-xs p-5 space-y-4">
+      <h3 class="font-bold text-lg text-slate-800">Log Extra Achievement</h3>
+      <div>
+        <label class="text-xs font-semibold text-gray-500">Achievement Type</label>
+        <select id="bonusType" class="w-full mt-1 border px-3 py-2 rounded-lg text-sm">
+          <option value="Learned Skill">Learned a New Skill (+20 pts)</option>
+          <option value="Defeated Fear">Defeated a Fear (+30 pts)</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500">Note / Description</label>
+        <input id="bonusNote" type="text" placeholder="Details..." class="w-full mt-1 border px-3 py-2 rounded-lg text-sm" />
+      </div>
+      <div class="flex space-x-2">
+        <button type="button" onclick="closeBonusModal()" class="w-1/2 py-2 border rounded-lg text-sm font-medium">Cancel</button>
+        <button type="button" onclick="claimBonusPoints()" class="w-1/2 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold">Claim Points</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let appState = {
+      users: JSON.parse(localStorage.getItem('appUsers') || '{}'),
+      activeUser: localStorage.getItem('activeUserKey') || null
+    };
+
+    window.onload = function() {
+      startClock();
+      if (appState.activeUser && appState.users[appState.activeUser]) {
+        showApp();
+      } else {
+        showAuth();
+      }
+    };
+
+    function startClock() {
+      setInterval(() => {
+        const now = new Date();
+        document.getElementById('liveClock').innerText = now.toLocaleTimeString();
+        const hrs = now.getHours();
+        let greeting = "Good morning,";
+        if (hrs >= 12 && hrs < 17) greeting = "Good afternoon,";
+        else if (hrs >= 17) greeting = "Good evening,";
+        document.getElementById('timeGreeting').innerText = greeting;
+      }, 1000);
+    }
+
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('tabLogin').className = "w-1/2 py-2 font-semibold text-emerald-600 border-b-2 border-emerald-600";
+        document.getElementById('tabSignup').className = "w-1/2 py-2 font-semibold text-gray-400";
+      } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('signupForm').classList.remove('hidden');
+        document.getElementById('tabSignup').className = "w-1/2 py-2 font-semibold text-emerald-600 border-b-2 border-emerald-600";
+        document.getElementById('tabLogin').className = "w-1/2 py-2 font-semibold text-gray-400";
+      }
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('signupUsername').value.trim();
+      const pass = document.getElementById('signupPassword').value.trim();
+      if (!name || !pass) {
+        alert("Please enter both username and password");
+        return;
+      }
+
+      if (appState.users[name]) {
+        if (appState.users[name].password === pass) {
+          loginUser(name);
+        } else {
+          alert("Username already exists with a different password!");
+        }
+        return;
+      }
+
+      appState.users[name] = {
+        password: pass,
+        points: 0,
+        habits: [],
+        todos: [],
+        water: 0,
+        mindmap: []
+      };
+      saveState();
+      loginUser(name);
+    }
+
+    function handleLogin() {
+      const name = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+      if (!name || !pass) {
+        alert("Please fill in both fields");
+        return;
+      }
+      if (appState.users[name] && appState.users[name].password === pass) {
+        loginUser(name);
+      } else {
+        alert("Invalid username or password!");
+      }
+    }
+
+    function loginUser(username) {
+      appState.activeUser = username;
+      localStorage.setItem('activeUserKey', username);
+      showApp();
+    }
+
+    function logout() {
+      appState.activeUser = null;
+      localStorage.removeItem('activeUserKey');
+      showAuth();
+    }
+
+    function saveState() {
+      localStorage.setItem('appUsers', JSON.stringify(appState.users));
+    }
+
+    function getCurrentUserData() {
+      if (!appState.activeUser || !appState.users[appState.activeUser]) {
+        appState.users[appState.activeUser] = { points: 0, habits: [], todos: [], water: 0, mindmap: [] };
+      }
+      return appState.users[appState.activeUser];
+    }
+
+    function showAuth() {
+      document.getElementById('authContainer').classList.remove('hidden');
+      document.getElementById('appContainer').classList.add('hidden');
+    }
+
+    function showApp() {
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('appContainer').classList.remove('hidden');
+      document.getElementById('displayUsername').innerText = appState.activeUser;
+      renderAll();
+      openView('Dashboard');
+    }
+
+    function openView(viewName) {
+      ['Dashboard', 'Habits', 'Planner', 'Water', 'MindMap'].forEach(v => {
+        document.getElementById('view' + v).classList.add('hidden');
+      });
+      document.getElementById('view' + viewName).classList.remove('hidden');
+    }
+
+    function renderAll() {
+      const u = getCurrentUserData();
+      document.getElementById('userPoints').innerText = u.points || 0;
+      document.getElementById('waterCount').innerText = u.water || 0;
+      renderHabits();
+      renderTodos();
+      renderMindMap();
+    }
+
+    /* HABITS */
+    function addHabit() {
+      const title = document.getElementById('habitTitle').value.trim();
+      const days = parseInt(document.getElementById('habitDays').value);
+      const points = parseInt(document.getElementById('habitPoints').value);
+      if (!title || !days || !points) return;
+      const u = getCurrentUserData();
+      u.habits.push({ id: Date.now(), title, days, completedDays: 0, points });
+      saveState();
+      renderHabits();
+      document.getElementById('habitTitle').value = '';
+      document.getElementById('habitDays').value = '';
+      document.getElementById('habitPoints').value = '';
+    }
+
+    function toggleHabitDay(id) {
+      const u = getCurrentUserData();
+      const h = u.habits.find(item => item.id === id);
+      if (h && h.completedDays < h.days) {
+        h.completedDays++;
+        if (h.completedDays === h.days) {
+          u.points += h.points;
+          alert(`Congratulations! Completed habit target. +${h.points} points awarded!`);
+        }
+        saveState();
+        renderAll();
+      }
+    }
+
+    function renderHabits() {
+      const u = getCurrentUserData();
+      const list = document.getElementById('habitsList');
+      list.innerHTML = '';
+      u.habits.forEach(h => {
+        const isDone = h.completedDays >= h.days;
+        list.innerHTML += `
+         <div class="bg-white p-4 rounded-xl border flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-800">${h.title}</div>
+              <div class="text-xs text-gray-400">Progress: ${h.completedDays}/${h.days} days | Reward: ${h.points} pts</div>
+            </div>
+            <button type="button" onclick="toggleHabitDay(${h.id})" ${isDone ? 'disabled' : ''} class="${isDone ? 'bg-gray-200 text-gray-400' : 'bg-emerald-600 text-white'} px-3 py-1.5 rounded-lg text-xs font-semibold">
+              ${isDone ? 'Completed' : '+1 Day'}
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    /* TODOS */
+    function addTodo() {
+      const title = document.getElementById('todoTitle').value.trim();
+      const pts = parseInt(document.getElementById('todoPoints').value) || 10;
+      if (!title) return;
+      const u = getCurrentUserData();
+      u.todos.push({ id: Date.now(), title, points: pts, completed: false });
+      saveState();
+      renderTodos();
+      document.getElementById('todoTitle').value = '';
+    }
+
+    function toggleTodo(id) {
+      const u = getCurrentUserData();
+      const t = u.todos.find(item => item.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        u.points += t.completed ? t.points : -t.points;
+        saveState();
+        renderAll();
+      }
+    }
+
+    function renderTodos() {
+      const u = getCurrentUserData();
+      const list = document.getElementById('todosList');
+      list.innerHTML = '';
+      u.todos.forEach(t => {
+        list.innerHTML += `
+          <div onclick="toggleTodo(${t.id})" class="bg-white p-3 rounded-xl border flex items-center justify-between cursor-pointer">
+            <div class="flex items-center space-x-3">
+              <i class="fa-${t.completed ? 'solid fa-circle-check text-emerald-500' : 'regular fa-circle text-gray-300'} text-lg"></i>
+              <span class="${t.completed ? 'line-through text-gray-400' : 'text-slate-800 font-medium'} text-sm">${t.title}</span>
+            </div>
+            <span class="text-xs font-semibold bg-amber-50 text-amber-600 px-2 py-0.5 rounded">+${t.points} pts</span>
+          </div>
+        `;
+      });
+    }
+
+    /* WATER */
+    function addWater(litres) {
+      const u = getCurrentUserData();
+      u.water = (u.water || 0) + litres;
+      saveState();
+      renderAll();
+    }
+
+    function resetWater() {
+      const u = getCurrentUserData();
+      u.water = 0;
+      saveState();
+      renderAll();
+    }
+
+    /* MIND MAP */
+    function addMindMapNode() {
+      const text = document.getElementById('nodeText').value.trim();
+      if (!text) return;
+      const u = getCurrentUserData();
+      u.mindmap.push({
+        id: Date.now(),
+        text: text,
+        parentId: document.getElementById('nodeParent').value || null
+      });
+      saveState();
+      renderMindMap();
+      document.getElementById('nodeText').value = '';
+    }
+
+    function renderMindMap() {
+      const u = getCurrentUserData();
+      const tree = document.getElementById('mindMapTree');
+      const select = document.getElementById('nodeParent');
+      tree.innerHTML = '';
+      select.innerHTML = '<option value="">Main Root Node</option>';
+
+      u.mindmap.forEach(n => {
+        select.innerHTML += `<option value="${n.id}">${n.text}</option>`;
+      });
+
+      const roots = u.mindmap.filter(n => !n.parentId);
+      roots.forEach(r => {
+        tree.appendChild(buildTreeNode(r, u.mindmap));
+      });
+    }
+
+    function buildTreeNode(node, allNodes) {
+      const div = document.createElement('div');
+      div.className = "pl-4 border-l-2 border-pink-200 my-1";
+      div.innerHTML = `<div class="font-semibold text-sm text-slate-700">📌 ${node.text}</div>`;
+      
+      const children = allNodes.filter(n => String(n.parentId) === String(node.id));
+      children.forEach(c => {
+        div.appendChild(buildTreeNode(c, allNodes));
+      });
+      return div;
+    }
+
+    /* BONUS MODAL */
+    function openBonusModal() { document.getElementById('bonusModal').classList.remove('hidden'); }
+    function closeBonusModal() { document.getElementById('bonusModal').classList.add('hidden'); }
+    function claimBonusPoints() {
+      const type = document.getElementById('bonusType').value;
+      const pts = type === 'Learned Skill' ? 20 : 30;
+      const u = getCurrentUserData();
+      u.points += pts;
+      saveState();
+      renderAll();
+      closeBonusModal();
+      alert(`Claimed +${pts} pts for ${type}!`);
+    }
+  </script>
+</body>
+</html>

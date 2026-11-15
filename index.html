@@ -390,18 +390,20 @@
     }
 
     function openView(viewName) {
-      ['Dashboard', 'Habits', 'Planner', 'Water', 'MindMap'].forEach(v => {
-        document.getElementById('view' + v).classList.add('hidden');
+      ['Dashboard', 'Habits', 'Planner', 'Routine', 'MindMap'].forEach(v => {
+        const el = document.getElementById('view' + v);
+        if (el) el.classList.add('hidden');
       });
-      document.getElementById('view' + viewName).classList.remove('hidden');
+      const target = document.getElementById('view' + viewName);
+      if (target) target.classList.remove('hidden');
     }
 
     function renderAll() {
       const u = getCurrentUserData();
       document.getElementById('userPoints').innerText = u.points || 0;
-      document.getElementById('waterCount').innerText = u.water || 0;
       renderHabits();
       renderTodos();
+      renderRoutines();
       renderMindMap();
     }
 

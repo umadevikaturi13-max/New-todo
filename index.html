@@ -205,26 +205,6 @@
       <div id="routinesList" class="space-y-2"></div>
     </main>
     
-    <!-- WATER TRACKER VIEW 
-    <main id="viewWater" class="p-4 space-y-4 flex-1 hidden">
-      <div class="flex items-center space-x-3 mb-2">
-        <button type="button" onclick="openView('Dashboard')" class="p-2 text-gray-500"><i class="fa-solid fa-chevron-left text-xl"></i></button>
-        <h2 class="text-xl font-bold">Water Tracker</h2>
-      </div>
-
-      <div class="bg-white p-6 rounded-2xl border text-center space-y-4">
-        <i class="fa-solid fa-glass-water text-6xl text-sky-500"></i>
-        <div>
-          <div id="waterCount" class="text-4xl font-extrabold text-slate-800">0</div>
-          <div class="text-xs text-gray-400 uppercase tracking-wide">Litres Consumed Today</div>
-        </div>
-        <div class="flex justify-center space-x-3">
-          <button type="button" onclick="addWater(1)" class="bg-sky-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md active:scale-95 transition">+ 1 Glass (1L)</button>
-          <button type="button" onclick="resetWater()" class="bg-gray-100 text-gray-500 px-3 py-2.5 rounded-xl text-sm"><i class="fa-solid fa-rotate-right"></i></button>
-        </div>
-      </div>
-    </main>
--->
     <!-- MIND MAP VIEW -->
     <main id="viewMindMap" class="p-4 space-y-4 flex-1 hidden">
       <div class="flex items-center space-x-3 mb-2">
@@ -254,8 +234,8 @@
       <div>
         <label class="text-xs font-semibold text-gray-500">Achievement Type</label>
         <select id="bonusType" class="w-full mt-1 border px-3 py-2 rounded-lg text-sm">
-          <option value="Learned Skill">Learned a New Skill (+20 pts)</option>
-          <option value="Defeated Fear">Defeated a Fear (+30 pts)</option>
+          <option value="Learned Skill">Learned a New Skill (+30 pts)</option>
+          <option value="Defeated Fear">Defeated a Fear (+50 pts)</option>
         </select>
       </div>
       <div>
@@ -692,21 +672,6 @@
       });
     }
     
-    /* WATER 
-    function addWater(litres) {
-      const u = getCurrentUserData();
-      u.water = (u.water || 0) + litres;
-      saveState();
-      renderAll();
-    }
-
-    function resetWater() {
-      const u = getCurrentUserData();
-      u.water = 0;
-      saveState();
-      renderAll();
-    }
-*/
     /* MIND MAP */
     function addMindMapNode() {
       const text = document.getElementById('nodeText').value.trim();
@@ -801,7 +766,7 @@
     function closeBonusModal() { document.getElementById('bonusModal').classList.add('hidden'); }
     function claimBonusPoints() {
       const type = document.getElementById('bonusType').value;
-      const pts = type === 'Learned Skill' ? 20 : 30;
+      const pts = type === 'Learned Skill' ? 30 : 50;
       const u = getCurrentUserData();
       u.points += pts;
       saveState();

@@ -424,7 +424,39 @@
       }
     }
 
+    function deleteHabit(id) {
+      const u = getCurrentUserData();
+      u.habits = u.habits.filter(item => item.id !== id);
+      saveState();
+      renderHabits();
+    }
+
     function renderHabits() {
+      const u = getCurrentUserData();
+      const list = document.getElementById('habitsList');
+      list.innerHTML = '';
+      u.habits.forEach(h => {
+        const isDone = h.completedDays >= h.days;
+        list.innerHTML += `
+          <div class="bg-white p-4 rounded-xl border flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-800">${h.title}</div>
+              <div class="text-xs text-gray-400">Progress: ${h.completedDays}/${h.days} days | Reward: ${h.points} pts</div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button type="button" onclick="toggleHabitDay(${h.id})" ${isDone ? 'disabled' : ''} class="${isDone ? 'bg-gray-200 text-gray-400' : 'bg-emerald-600 text-white'} px-3 py-1.5 rounded-lg text-xs font-semibold">
+                ${isDone ? 'Completed' : '+1 Day'}
+              </button>
+              <button type="button" onclick="deleteHabit(${h.id})" class="text-gray-300 hover:text-red-500 p-1">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+    
+/*  function renderHabits() {
       const u = getCurrentUserData();
       const list = document.getElementById('habitsList');
       list.innerHTML = '';
@@ -443,7 +475,7 @@
         `;
       });
     }
-
+*/
     /* TODOS */
     function addTodo() {
       const title = document.getElementById('todoTitle').value.trim();

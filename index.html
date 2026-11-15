@@ -995,6 +995,62 @@
       }
     }
 
+    function deleteTodo(id) {
+      const u = getCurrentUserData();
+      u.todos = u.todos.filter(item => item.id !== id);
+      saveState();
+      renderTodos();
+    }
+
+    function renderTodos() {
+      const u = getCurrentUserData();
+      const list = document.getElementById('todosList');
+      list.innerHTML = '';
+      u.todos.forEach(t => {
+        list.innerHTML += `
+          <div class="bg-white p-3 rounded-xl border flex items-center justify-between">
+            <div onclick="toggleTodo(${t.id})" class="flex items-center space-x-3 flex-1 cursor-pointer">
+              <i class="fa-${t.completed ? 'solid fa-circle-check text-emerald-500' : 'regular fa-circle text-gray-300'} text-lg"></i>
+              <span class="${t.completed ? 'line-through text-gray-400' : 'text-slate-800 font-medium'} text-sm">${t.title}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold bg-amber-50 text-amber-600 px-2 py-0.5 rounded">+${t.points} pts</span>
+              <button type="button" onclick="deleteTodo(${t.id})" class="text-xs text-gray-300 hover:text-red-500 p-1">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+    
+
+
+
+    
+    /* TODOS 
+    function addTodo() {
+      const title = document.getElementById('todoTitle').value.trim();
+      const pts = parseInt(document.getElementById('todoPoints').value) || 10;
+      if (!title) return;
+      const u = getCurrentUserData();
+      u.todos.push({ id: Date.now(), title, points: pts, completed: false });
+      saveState();
+      renderTodos();
+      document.getElementById('todoTitle').value = '';
+    }
+
+    function toggleTodo(id) {
+      const u = getCurrentUserData();
+      const t = u.todos.find(item => item.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        u.points += t.completed ? t.points : -t.points;
+        saveState();
+        renderAll();
+      }
+    }
+
     function renderTodos() {
       const u = getCurrentUserData();
       const list = document.getElementById('todosList');
@@ -1011,7 +1067,7 @@
         `;
       });
     }
-
+*/
     /* WATER */
     function addWater(litres) {
       const u = getCurrentUserData();

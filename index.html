@@ -270,7 +270,7 @@
   </div>
 
   <script>
-    let appState = {
+    /*let appState = {
       users: JSON.parse(localStorage.getItem('appUsers') || '{}'),
       activeUser: localStorage.getItem('activeUserKey') || null
     };
@@ -397,7 +397,7 @@
       const target = document.getElementById('view' + viewName);
       if (target) target.classList.remove('hidden');
     }
-
+ 
     function renderAll() {
       const u = getCurrentUserData();
       document.getElementById('userPoints').innerText = u.points || 0;
@@ -615,7 +615,7 @@
       renderAll();
     }
 */
-    /* MIND MAP */
+    /* MIND MAP 
     function addMindMapNode() {
       const text = document.getElementById('nodeText').value.trim();
       if (!text) return;
@@ -704,6 +704,443 @@
       return div;
     }
 
+    /* BONUS MODAL 
+    function openBonusModal() { document.getElementById('bonusModal').classList.remove('hidden'); }
+    function closeBonusModal() { document.getElementById('bonusModal').classList.add('hidden'); }
+    function claimBonusPoints() {
+      const type = document.getElementById('bonusType').value;
+      const pts = type === 'Learned Skill' ? 20 : 30;
+      const u = getCurrentUserData();
+      u.points += pts;
+      saveState();
+      renderAll();
+      closeBonusModal();
+      alert(`Claimed +${pts} pts for ${type}!`);
+    }*/
+
+        let appState = {
+      users: JSON.parse(localStorage.getItem('appUsers') || '{}'),
+      activeUser: localStorage.getItem('activeUserKey') || null
+    };
+
+    window.onload = function() {
+      startClock();
+      if (appState.activeUser && appState.users[appState.activeUser]) {
+        showApp();
+      } else {
+        showAuth();
+      }
+    };
+
+    function startClock() {
+      setInterval(() => {
+        const now = new Date();
+        document.getElementById('liveClock').innerText = now.toLocaleTimeString();
+        const hrs = now.getHours();
+        let greeting = "Good morning,";
+        if (hrs >= 12 && hrs < 17) greeting = "Good afternoon,";
+        else if (hrs >= 17) greeting = "Good evening,";
+        document.getElementById('timeGreeting').innerText = greeting;
+      }, 1000);
+    }
+
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('tabLogin').className = "w-1/2 py-2 font-semibold text-emerald-600 border-b-2 border-emerald-600";
+        document.getElementById('tabSignup').className = "w-1/2 py-2 font-semibold text-gray-400";
+      } else {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('signupForm').classList.remove('hidden');
+        document.getElementById('tabSignup').className = "w-1/2 py-2 font-semibold text-emerald-600 border-b-2 border-emerald-600";
+        document.getElementById('tabLogin').className = "w-1/2 py-2 font-semibold text-gray-400";
+      }
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('signupUsername').value.trim();
+      const pass = document.getElementById('signupPassword').value.trim();
+      if (!name || !pass) {
+        alert("Please enter both username and password");
+        return;
+      }
+
+      if (appState.users[name]) {
+        if (appState.users[name].password === pass) {
+          loginUser(name);
+        } else {
+          alert("Username already exists with a different password!");
+        }
+        return;
+      }
+
+      appState.users[name] = {
+        password: pass,
+        points: 0,
+        habits: [],
+        todos: [],
+        routines: { workday: [], holiday: [] },
+        mindmap: []
+      };
+      saveState();
+      loginUser(name);
+    }
+
+    function handleLogin() {
+      const name = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+      if (!name || !pass) {
+        alert("Please fill in both fields");
+        return;
+      }
+      if (appState.users[name] && appState.users[name].password === pass) {
+        loginUser(name);
+      } else {
+        alert("Invalid username or password!");
+      }
+    }
+
+    function loginUser(username) {
+      appState.activeUser = username;
+      localStorage.setItem('activeUserKey', username);
+      showApp();
+    }
+
+    function logout() {
+      appState.activeUser = null;
+      localStorage.removeItem('activeUserKey');
+      showAuth();
+    }
+
+    function saveState() {
+      localStorage.setItem('appUsers', JSON.stringify(appState.users));
+    }
+
+    function getCurrentUserData() {
+      if (!appState.activeUser || !appState.users[appState.activeUser]) {
+        appState.users[appState.activeUser] = { points: 0, habits: [], todos: [], routines: { workday: [], holiday: [] }, mindmap: [] };
+      }
+      if (!appState.users[appState.activeUser].routines) {
+        appState.users[appState.activeUser].routines = { workday: [], holiday: [] };
+      }
+      return appState.users[appState.activeUser];
+    }
+
+    function showAuth() {
+      document.getElementById('authContainer').classList.remove('hidden');
+      document.getElementById('appContainer').classList.add('hidden');
+    }
+
+    function showApp() {
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('appContainer').classList.remove('hidden');
+      document.getElementById('displayUsername').innerText = appState.activeUser;
+      renderAll();
+      openView('Dashboard');
+    }
+
+    function openView(viewName) {
+      ['Dashboard', 'Habits', 'Planner', 'Routine', 'MindMap'].forEach(v => {
+        const el = document.getElementById('view' + v);
+        if (el) el.classList.add('hidden');
+      });
+      const target = document.getElementById('view' + viewName);
+      if (target) target.classList.remove('hidden');
+    }
+
+    function renderAll() {
+      const u = getCurrentUserData();
+      document.getElementById('userPoints').innerText = u.points || 0;
+      renderHabits();
+      renderTodos();
+      renderRoutines();
+      renderMindMap();
+    }
+
+    /* HABITS */
+    function addHabit() {
+      const title = document.getElementById('habitTitle').value.trim();
+      const days = parseInt(document.getElementById('habitDays').value);
+      const points = parseInt(document.getElementById('habitPoints').value);
+      if (!title || !days || !points) return;
+      const u = getCurrentUserData();
+      u.habits.push({ id: Date.now(), title, days, completedDays: 0, points });
+      saveState();
+      renderHabits();
+      document.getElementById('habitTitle').value = '';
+      document.getElementById('habitDays').value = '';
+      document.getElementById('habitPoints').value = '';
+    }
+
+    function toggleHabitDay(id) {
+      const u = getCurrentUserData();
+      const h = u.habits.find(item => item.id === id);
+      if (h && h.completedDays < h.days) {
+        h.completedDays++;
+        if (h.completedDays === h.days) {
+          u.points += h.points;
+          alert(`Congratulations! Completed habit target. +${h.points} points awarded!`);
+        }
+        saveState();
+        renderAll();
+      }
+    }
+
+    function renderHabits() {
+      const u = getCurrentUserData();
+      const list = document.getElementById('habitsList');
+      list.innerHTML = '';
+      u.habits.forEach(h => {
+        const isDone = h.completedDays >= h.days;
+        list.innerHTML += `
+          <div class="bg-white p-4 rounded-xl border flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-800">${h.title}</div>
+              <div class="text-xs text-gray-400">Progress: ${h.completedDays}/${h.days} days | Reward: ${h.points} pts</div>
+            </div>
+            <button type="button" onclick="toggleHabitDay(${h.id})" ${isDone ? 'disabled' : ''} class="${isDone ? 'bg-gray-200 text-gray-400' : 'bg-emerald-600 text-white'} px-3 py-1.5 rounded-lg text-xs font-semibold">
+              ${isDone ? 'Completed' : '+1 Day'}
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    /* TODOS */
+    function addTodo() {
+      const title = document.getElementById('todoTitle').value.trim();
+      const pts = parseInt(document.getElementById('todoPoints').value) || 10;
+      if (!title) return;
+      const u = getCurrentUserData();
+      u.todos.push({ id: Date.now(), title, points: pts, completed: false });
+      saveState();
+      renderTodos();
+      document.getElementById('todoTitle').value = '';
+    }
+
+    function toggleTodo(id) {
+      const u = getCurrentUserData();
+      const t = u.todos.find(item => item.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        u.points += t.completed ? t.points : -t.points;
+        saveState();
+        renderAll();
+      }
+    }
+
+    function deleteTodo(id) {
+      const u = getCurrentUserData();
+      u.todos = u.todos.filter(item => item.id !== id);
+      saveState();
+      renderTodos();
+    }
+
+    function renderTodos() {
+      const u = getCurrentUserData();
+      const list = document.getElementById('todosList');
+      list.innerHTML = '';
+      u.todos.forEach(t => {
+        list.innerHTML += `
+          <div class="bg-white p-3 rounded-xl border flex items-center justify-between">
+            <div onclick="toggleTodo(${t.id})" class="flex items-center space-x-3 flex-1 cursor-pointer">
+              <i class="fa-${t.completed ? 'solid fa-circle-check text-emerald-500' : 'regular fa-circle text-gray-300'} text-lg"></i>
+              <span class="${t.completed ? 'line-through text-gray-400' : 'text-slate-800 font-medium'} text-sm">${t.title}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold bg-amber-50 text-amber-600 px-2 py-0.5 rounded">+${t.points} pts</span>
+              <button type="button" onclick="deleteTodo(${t.id})" class="text-xs text-gray-300 hover:text-red-500 p-1">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    /* ROUTINE TRACKER */
+    let activeRoutineTab = 'workday';
+
+    function switchRoutineTab(tab) {
+      activeRoutineTab = tab;
+      if (tab === 'workday') {
+        document.getElementById('tabWorkday').className = "w-1/2 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white shadow-sm transition";
+        document.getElementById('tabHoliday').className = "w-1/2 py-2.5 rounded-xl font-bold text-sm bg-white text-gray-600 border shadow-sm transition";
+      } else {
+        document.getElementById('tabHoliday').className = "w-1/2 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white shadow-sm transition";
+        document.getElementById('tabWorkday').className = "w-1/2 py-2.5 rounded-xl font-bold text-sm bg-white text-gray-600 border shadow-sm transition";
+      }
+      renderRoutines();
+    }
+
+    function addRoutine() {
+      const title = document.getElementById('routineTitle').value.trim();
+      const pts = parseInt(document.getElementById('routinePoints').value) || 10;
+      if (!title) return;
+      const u = getCurrentUserData();
+      if (!u.routines) u.routines = { workday: [], holiday: [] };
+      
+      u.routines[activeRoutineTab].push({ id: Date.now(), title, points: pts, completed: false });
+      saveState();
+      renderRoutines();
+      document.getElementById('routineTitle').value = '';
+    }
+
+    function toggleRoutine(id) {
+      const u = getCurrentUserData();
+      if (!u.routines) return;
+      const r = u.routines[activeRoutineTab].find(item => item.id === id);
+      if (r) {
+        r.completed = !r.completed;
+        u.points += r.completed ? r.points : -r.points;
+        saveState();
+        renderAll();
+      }
+    }
+
+    function deleteRoutine(id) {
+      const u = getCurrentUserData();
+      if (!u.routines) return;
+      u.routines[activeRoutineTab] = u.routines[activeRoutineTab].filter(item => item.id !== id);
+      saveState();
+      renderRoutines();
+    }
+
+    function moveRoutine(index, direction) {
+      const u = getCurrentUserData();
+      if (!u.routines) return;
+      const list = u.routines[activeRoutineTab];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= list.length) return;
+      
+      const temp = list[index];
+      list[index] = list[targetIndex];
+      list[targetIndex] = temp;
+      saveState();
+      renderRoutines();
+    }
+
+    function renderRoutines() {
+      const u = getCurrentUserData();
+      if (!u.routines) u.routines = { workday: [], holiday: [] };
+      const list = document.getElementById('routinesList');
+      if (!list) return;
+      list.innerHTML = '';
+      
+      const items = u.routines[activeRoutineTab];
+      if (!items || items.length === 0) {
+        list.innerHTML = `<div class="text-center text-xs text-gray-400 py-6">No routines added for ${activeRoutineTab}.</div>`;
+        return;
+      }
+
+      items.forEach((r, idx) => {
+        list.innerHTML += `
+          <div class="bg-white p-3 rounded-xl border flex items-center justify-between shadow-sm">
+            <div onclick="toggleRoutine(${r.id})" class="flex items-center space-x-3 flex-1 cursor-pointer">
+              <i class="fa-${r.completed ? 'solid fa-circle-check text-indigo-600' : 'regular fa-circle text-gray-300'} text-lg"></i>
+              <span class="${r.completed ? 'line-through text-gray-400' : 'text-slate-800 font-medium'} text-sm">${r.title}</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-xs font-semibold bg-amber-50 text-amber-600 px-2 py-0.5 rounded">+${r.points} pts</span>
+              <button type="button" onclick="moveRoutine(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="text-gray-400 hover:text-indigo-600 p-1 ${idx === 0 ? 'opacity-30' : ''}"><i class="fa-solid fa-arrow-up text-xs"></i></button>
+              <button type="button" onclick="moveRoutine(${idx}, 1)" ${idx === items.length - 1 ? 'disabled' : ''} class="text-gray-400 hover:text-indigo-600 p-1 ${idx === items.length - 1 ? 'opacity-30' : ''}"><i class="fa-solid fa-arrow-down text-xs"></i></button>
+              <button type="button" onclick="deleteRoutine(${r.id})" class="text-gray-300 hover:text-red-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    /* MIND MAP */
+    function addMindMapNode() {
+      const text = document.getElementById('nodeText').value.trim();
+      if (!text) return;
+      const u = getCurrentUserData();
+      u.mindmap.push({
+        id: Date.now(),
+        text: text,
+        parentId: document.getElementById('nodeParent').value || null,
+        isActive: false
+      });
+      saveState();
+      renderMindMap();
+      document.getElementById('nodeText').value = '';
+    }
+
+    function toggleNodeActive(id) {
+      const u = getCurrentUserData();
+      const node = u.mindmap.find(n => String(n.id) === String(id));
+      if (node) {
+        node.isActive = !node.isActive;
+        saveState();
+        renderMindMap();
+      }
+    }
+
+    function deleteMindMapNode(id) {
+      const u = getCurrentUserData();
+      const toDelete = new Set([String(id)]);
+      let added;
+      do {
+        added = false;
+        u.mindmap.forEach(n => {
+          if (n.parentId && toDelete.has(String(n.parentId)) && !toDelete.has(String(n.id))) {
+            toDelete.add(String(n.id));
+            added = true;
+          }
+        });
+      } while (added);
+
+      u.mindmap = u.mindmap.filter(n => !toDelete.has(String(n.id)));
+      saveState();
+      renderMindMap();
+    }
+
+    function renderMindMap() {
+      const u = getCurrentUserData();
+      const tree = document.getElementById('mindMapTree');
+      const select = document.getElementById('nodeParent');
+      if (!tree || !select) return;
+      tree.innerHTML = '';
+      select.innerHTML = '<option value="">Main Root Node</option>';
+
+      u.mindmap.forEach(n => {
+        select.innerHTML += `<option value="${n.id}">${n.text}</option>`;
+      });
+
+      const roots = u.mindmap.filter(n => !n.parentId);
+      roots.forEach(r => {
+        tree.appendChild(buildTreeNode(r, u.mindmap));
+      });
+    }
+
+    function buildTreeNode(node, allNodes) {
+      const div = document.createElement('div');
+      div.className = "pl-4 border-l-2 border-pink-200 my-1";
+      
+      const pinIcon = node.isActive ? '📍' : '📌';
+      const activeStyle = node.isActive ? 'font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200' : 'font-semibold text-slate-700';
+
+      div.innerHTML = `
+        <div class="flex items-center justify-between text-sm py-0.5">
+          <div class="flex items-center space-x-1.5 cursor-pointer" onclick="toggleNodeActive(${node.id})">
+            <span class="text-base">${pinIcon}</span>
+            <span class="${activeStyle}">${node.text}</span>
+          </div>
+          <button type="button" onclick="deleteMindMapNode(${node.id})" class="text-xs text-gray-300 hover:text-red-500 px-1">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `;
+      
+      const children = allNodes.filter(n => String(n.parentId) === String(node.id));
+      children.forEach(c => {
+        div.appendChild(buildTreeNode(c, allNodes));
+      });
+      return div;
+    }
+
     /* BONUS MODAL */
     function openBonusModal() { document.getElementById('bonusModal').classList.remove('hidden'); }
     function closeBonusModal() { document.getElementById('bonusModal').classList.add('hidden'); }
@@ -717,6 +1154,7 @@
       closeBonusModal();
       alert(`Claimed +${pts} pts for ${type}!`);
     }
+    
   </script>
 </body>
 </html>
